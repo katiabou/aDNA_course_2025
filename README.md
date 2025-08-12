@@ -17,7 +17,9 @@ DATA_PATH=${COURSE_PATH}/people/qcj125/data_exercise
 
 ### Load required modules
 Run the following bash script:  
-`. ${COURSE_PATH}/people/qcj125/activate.sh`
+```
+. ${COURSE_PATH}/people/qcj125/activate.sh
+```
 
 
 ## Exercise 1: Explore input data
@@ -28,10 +30,14 @@ We will use the following files:
 4) Ancient dog bam files  
 
 ### Reference panel
-`REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz`
+```
+REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
+```
 
 Let's take a look:  
-`bcftools view ${REF} | less -S`
+```
+bcftools view ${REF} | less -S
+```
 
 #### Questions: 
 1) How many sites are in the panel for chr22? (813342)
@@ -39,19 +45,31 @@ Let's take a look:
 3) How many samples are in the reference panel? (1519)
 4) What species are present?
 
+#### Hints (use these commands to answer the above questions): 
+```
+bcftools view -H ${REF} | wc -l
+bcftools view ${REF} | less -S
+bcftools query -l ${REF} | wc -l
+bcftools query -l ${REF} | less -S
+```
+
 ### Bam files
 These include the initial high coverage bam file and the downsampled ones to 1x and 0.1x coverage:
 ```
-${DATA_PATH}/bams/TRF.05.05_Merged.CanFam3.1Y.rmdup.bam
-${DATA_PATH}/bams_down/TRF.05.05.chr22.0.1x.bam
-${DATA_PATH}/bams_down/TRF.05.05.chr22.1x.bam
+ls ${DATA_PATH}/bams/TRF.05.05_Merged.CanFam3.1Y.rmdup.bam
+ls ${DATA_PATH}/bams_down/TRF.05.05.chr22.0.1x.bam
+ls ${DATA_PATH}/bams_down/TRF.05.05.chr22.1x.bam
 ```
 
 ### Genetic map (recombination map)
-`MAP=${DATA_PATH}/gen_map/chr22_average_canFam3.1_modified.txt`
+```
+MAP=${DATA_PATH}/gen_map/chr22_average_canFam3.1_modified.txt
+```
 
 Let's take a look:  
-`less ${MAP}`
+```
+less ${MAP}
+```
 
 The three columns are genomic position, chromosome, and distance in cM.
 
@@ -59,7 +77,9 @@ The three columns are genomic position, chromosome, and distance in cM.
 Why do you think we need a genetic map for imputation?
 
 ### Reference genome (fasta files)
-`REFGEN=${DATA_PATH}/reference_fasta/CanFam31_chr22.fasta`
+```
+REFGEN=${DATA_PATH}/reference_fasta/CanFam31_chr22.fasta
+```
 
 **Note!!!** It is important to make sure the reference panel samples and target samples have been mapped with the same reference genome, and that you use the correct one for imputation.
 
@@ -74,6 +94,7 @@ mkdir -p output/GLs_target_bams
 mkdir -p output/chunks
 mkdir -p output/GLIMPSE_imputed
 mkdir -p output/GLIMPSE_ligated
+mkdir -p output/GLIMPSE_concordance
 ```
 
 ### Step 1: Extract variable positions from the reference panel  
@@ -107,23 +128,27 @@ tabix -s1 -b2 -e2 ${TSV}
 ```
 
 Take a look at the tsv file:    
-`less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz`
+```
+less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
+```
 
 
 
 ### Step 2: Compute genotype likelihoods at each position
 
-# Let's start with the 1x ancient Siberian dog
-SAMPLE=TRF.05.05.chr22.0.1x
+#### Let's start with the 1x ancient Siberian dog
+```
+SAMPLE=TRF.05.05.chr22.1x
+```
 
 The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites.
 The output of this step is a VCF file format containing genotype likelihoods at each site (based on those presentin the reference panel).
 
 ```
-BAM={DATA_PATH}/bams_down/${SAMPLE}.bam
+BAM=${DATA_PATH}/bams_down/${SAMPLE}.bam
 VCF=output/reference_panel/chr22_ref_panel_sites.vcf.gz
 TSV=output/reference_panel/chr22_ref_panel_sites.tsv.gz
-REFGEN={DATA_PATH}/reference_fasta/CanFam31_chr22.fasta
+REFGEN=${DATA_PATH}/reference_fasta/CanFam31_chr22.fasta
 GL=output/GLs_target_bams/${SAMPLE}.vcf.gz
 
 bcftools mpileup \
@@ -157,8 +182,8 @@ GLIMPSE_chunk_static \
 
 ```
 GL=output/GLs_target_bams/${SAMPLE}.vcf.gz
-REF_PANEL={DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
-MAP={DATA_PATH}/gen_map/chr22_average_canFam3.1_modified.txt
+REF_PANEL=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
+MAP=${DATA_PATH}/gen_map/chr22_average_canFam3.1_modified.txt
 CHUNK=output/chunks/chr22_chunks.txt
 OUT=output/GLIMPSE_imputed/${SAMPLE}.${ID}.bcf
 PREFIX=output/GLIMPSE_imputed/${SAMPLE}
@@ -181,6 +206,7 @@ done < ${CHUNK}
 
 Take a small break while this is running :)
 
+
 ### Step 5: Ligate the chunks together
 After imputing, we can now merge all of the imputed sites for each chunk together, using the GLIMPSE_ligate tool:
 
@@ -197,7 +223,8 @@ GLIMPSE_ligate_static \
 
 bcftools index -f ${LIGATED}
 ```
-### Step 6: Final step is to phase the whole chromosome using the GLIMPSE_sample tool. 
+
+### Step 6: Phase the whole chromosome using the GLIMPSE_sample tool. 
 We will use the mode which outputs the most likely haplotypes given the values in the FORMAT/HS field. (What is the HS field?)
 
 ```
@@ -212,5 +239,137 @@ GLIMPSE_sample_static \
 bcftools index -f ${PHASED}
 ```
 
+### Step 7: Annoate the phased files (some fields are not carried over from the imputed to the phased files)
+```
+LIGATED=output/GLIMPSE_ligated/${SAMPLE}.ligated.bcf
+PHASED=output/GLIMPSE_ligated/${SAMPLE}.phased.bcf
+ANNOTATED=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz
+
+bcftools annotate \
+${PHASED} \
+--annotation ${LIGATED} \
+--columns FORMAT/DS,FORMAT/GP,FORMAT/HS \
+--output-type z \
+--output ${ANNOTATED}
+
+bcftools index --tbi ${ANNOTATED}
+```
+
 #### Congrats, you have now imputed and phased an ancient dog sample!
+
+Let's take a look at the final phased and imputed file:
+```
+bcftools view output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz | less -S
+```
+
+Take a moment to understand the different fields. What does the INFO/INFO field represent?
+
+Q: How many imputed sites are there? How does it compare the number of sites in the reference panel?
+
+#### Hint (use this command to answer the above questions): 
+```
+bcftools view -H output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz | wc -l
+```
+
+
+## Exercise 3: Checking imputation accuracy
+
+### Let's take a look at how accurate the imputation is!
+
+Since our ancient dog sample is "high coverage", we can use the genotypes from it as the "true genotypes", and compare them to the imputed genotypes. This will give us an idea of how accurate the imputation went.
+
+You can find the "true genotypes" here:
+
+
+Luckily, GLIMPSE has an additional tool called GLIMPSE_concordance, which can do this for us.
+
+But first, let's come back to the INFO/INFO field we saw above. This field essentially indicates the level of uncertainty in the posterior genotypes probabilities of each imputed site. The closer to 1, the more certain we are about that imputed site. As we saw in the previous exercise, all the sites present in the reference panel will also be imputed in the ancient sample. However, this does not mean that every imputed site will be correct. Therefore, it's a good approach to filter out low-confidence imputed site based on the INFO score. Let's do that for 3 different INFO score cutoffs: 0.8, 0.9, 0.95. The higher the cutoff, the more strict we are, and the more sites are filtered out.
+
+```
+ANNOTATED=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz
+INFO_CUTOFF=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf
+
+for i in 0.0 0.8 0.9 0.95
+do
+bcftools view \
+${ANNOTATED} \
+--include "INFO/INFO >= $i" \
+-Ob -o ${INFO_CUTOFF}
+
+bcftools index -f ${INFO_CUTOFF}
+
+done
+```
+
+What we need for GLIMPSE_concordance is a file with the sample name and a file containing the following information:
+1) The chromosome (or region) we're interested in
+2) A file with the allele frequencies at each site (this is in the reference panel)
+3) The "true genotypes" from the high coverage ancient sample
+4) The imputed data
+
+Make file with sample name:
+```
+ANNOTATED=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz
+SAMPLE_NAME=output/GLIMPSE_concordance/${SAMPLE}.txt
+
+bcftools query -l ${ANNOTATED} > ${SAMPLE_NAME}
+```
+
+Make file with required inputs:
+```
+REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
+TRUE=${DATA_PATH}/validation_bams/TRF.05.05_chr22_validation_filt_qual_dp_ab.bcf
+
+for i in 0.0 0.8 0.9 0.95
+do
+echo "chr22" ${REF} ${TRUE} output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf > output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt
+done
+```
+
+Run GLIMPSE_concordance for our imputed sample, using the different INFO score cutoffs. This will take a few minutes.
+```
+LST=output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt
+SAMPLE_NAME=output/GLIMPSE_concordance/${SAMPLE}.txt
+
+for i in 0.0 0.8 0.9 0.95
+do
+GLIMPSE_concordance_static \
+--input output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt \
+--minDP 8 \
+--output output/GLIMPSE_concordance/${SAMPLE}_INFO_${i} \
+--minPROB 0.9 \
+--bins 0.00000 0.00100 0.00200 0.00500 0.01000 0.05000 0.10000 0.20000 0.50000 \
+--sample ${SAMPLE_NAME} \
+--af-tag AF
+done
+```
+
+Now there are different output files produced at this step, but let's focus on these two (using the INFO cutoff of 0.8 for now): 
+```
+less output/GLIMPSE_concordance/${SAMPLE}_INFO_0.9.rsquare.grp.txt.gz
+```
+This file has 5 columns, but we're interested in the 1st (MAF bin number) and last (aggregative r^2)
+
+#### Plot imputation accuracy across different INFO cutoffs
+
+
+
+
+
+
+
+
+
+```
+less output/GLIMPSE_concordance/${SAMPLE}_INFO_0.9.error.spl.txt.gz
+```
+RR is REF/REF, RA is REF/ALT and AA is ALT/ALT.
+
+
+
+Q: Why are the sections with indels all 0?
+
+Let's plot the concordance estimates to get an idea of the imputation accuracy. We will plot ___ from the __ file, against different MAF bins. 
+
+## Exercise 4: Comparing imputation accuracy at different coverages
 
