@@ -379,11 +379,11 @@ Questions:
 What differences do you notice between the 1x and 0.1x imputed samples? Why? 
 
 Let's look at the distribution of INFO scores for 1x and 0.1x:
-```
-Rscript scripts/info_scores.R 0.1
-```
 
+![](INFO_distribution.png)
 
+Question:
+What difference do you notice in the INFO scores between the two coverages? 
 
 
 ## Exercise 5: Impact of ancestral representation in the reference panel
