@@ -287,16 +287,15 @@ But first, let's come back to the INFO/INFO field we saw above. This field essen
 
 ```
 ANNOTATED=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz
-INFO_CUTOFF=output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf
 
-for i in 0.0 0.8 0.9 0.95
+for i in 0 0.8 0.9 0.95
 do
 bcftools view \
 ${ANNOTATED} \
---include "INFO/INFO >= $i" \
--Ob -o ${INFO_CUTOFF}
+--include "INFO/INFO >= ${i}" \
+-Ob -o output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf
 
-bcftools index -f ${INFO_CUTOFF}
+bcftools index -f output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf
 
 done
 ```
@@ -320,7 +319,7 @@ Make file with required inputs:
 REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
 TRUE=${DATA_PATH}/validation_bams/TRF.05.05_chr22_validation_filt_qual_dp_ab.bcf
 
-for i in 0.0 0.8 0.9 0.95
+for i in 0 0.8 0.9 0.95
 do
 echo "chr22" ${REF} ${TRUE} output/GLIMPSE_ligated/${SAMPLE}.phased_annotated_INFO_${i}.bcf > output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt
 done
@@ -331,7 +330,7 @@ Run GLIMPSE_concordance for our imputed sample, using the different INFO score c
 LST=output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt
 SAMPLE_NAME=output/GLIMPSE_concordance/${SAMPLE}.txt
 
-for i in 0.0 0.8 0.9 0.95
+for i in 0 0.8 0.9 0.95
 do
 GLIMPSE_concordance_static \
 --input output/GLIMPSE_concordance/lst_${SAMPLE}_INFO_${i}.txt \
@@ -344,15 +343,21 @@ GLIMPSE_concordance_static \
 done
 ```
 
-Now there are different output files produced at this step, but let's focus on these two (using the INFO cutoff of 0.8 for now): 
+Now there are different output files produced at this step, but let's focus on the one finishing in "rsquare.grp.txt.gz": 
 ```
-less output/GLIMPSE_concordance/${SAMPLE}_INFO_0.9.rsquare.grp.txt.gz
+ls output/GLIMPSE_concordance/${SAMPLE}_INFO_*.rsquare.grp.txt.gz
 ```
-This file has 5 columns, but we're interested in the 1st (MAF bin number) and last (aggregative r^2)
+
+This file has 5 columns, but we're interested in the 1st (MAF bin number) and last (aggregative r^2). We'll use these two columns to plot the imputation accuracy.
 
 #### Plot imputation accuracy across different INFO cutoffs
 
+```
+Rscript scripts/glimpse_accuracy.R 
+```
 
+Q: What do you notice from this plot about the different INFO score cutoffs?  
+Q: What do you notice about the different MAF bins? Why?
 
 
 
@@ -371,5 +376,5 @@ Q: Why are the sections with indels all 0?
 
 Let's plot the concordance estimates to get an idea of the imputation accuracy. We will plot ___ from the __ file, against different MAF bins. 
 
-## Exercise 4: Comparing imputation accuracy at different coverages
+## Exercise 4: Impact of ancestral representation in the reference panel
 
