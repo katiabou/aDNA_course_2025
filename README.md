@@ -87,7 +87,7 @@ REFGEN=${DATA_PATH}/reference_fasta/CanFam31_chr22.fasta
 ## Exercise 2: Imputing an ancient dog genome with GLIMPSE
 We will now run different steps as part of the GLIMPSE imputation pipeline and impute the 1x ancient Siberian dog sample.
 
-#Make output directories (ONLY RUN THESE ONCE!)
+Make output directories (ONLY RUN THIS ONCE!)
 ```
 mkdir -p output/reference_panel
 mkdir -p output/GLs_target_bams
@@ -138,11 +138,11 @@ less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
 
 #### Let's start with the 1x ancient Siberian dog
 ```
-SAMPLE=TRF.05.05.chr22.1x
+SAMPLE=TRF.05.05.chr22.0.1x
 ```
 
 The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites.
-The output of this step is a VCF file format containing genotype likelihoods at each site (based on those presentin the reference panel).
+The output of this step is a VCF file format containing genotype likelihoods at each site (based on those present in the reference panel).
 
 ```
 BAM=${DATA_PATH}/bams_down/${SAMPLE}.bam
@@ -239,7 +239,7 @@ GLIMPSE_sample_static \
 bcftools index -f ${PHASED}
 ```
 
-### Step 7: Annoate the phased files (some fields are not carried over from the imputed to the phased files)
+### Step 7: Annotate the phased files (some fields are not carried over from the imputed to the phased files)
 ```
 LIGATED=output/GLIMPSE_ligated/${SAMPLE}.ligated.bcf
 PHASED=output/GLIMPSE_ligated/${SAMPLE}.phased.bcf
@@ -350,14 +350,45 @@ ls output/GLIMPSE_concordance/${SAMPLE}_INFO_*.rsquare.grp.txt.gz
 
 This file has 5 columns, but we're interested in the 1st (MAF bin number) and last (aggregative r^2). We'll use these two columns to plot the imputation accuracy.
 
-#### Plot imputation accuracy across different INFO cutoffs
+#### Plot imputation accuracy at 1x coverage across different INFO cutoffs
 
 ```
-Rscript scripts/glimpse_accuracy.R 
+Rscript scripts/glimpse_accuracy.R 1x
 ```
 
-Q: What do you notice from this plot about the different INFO score cutoffs?  
-Q: What do you notice about the different MAF bins? Why?
+Questions: 
+1) What do you notice from this plot about the different INFO score cutoffs?
+2) What do you notice about the different MAF bins? Why?
+
+
+
+## Exercise 4: Checking imputation accuracy at 0.1x
+
+If you have time, re-run the imputation steps 2-7, this time using the 0.1x downsampled dog (Change the SAMPLE name from TRF.05.05.chr22.1x to TRF.05.05.chr22.0.1x and then re-run the same code as is). 
+
+Then plot the results:
+```
+Rscript scripts/glimpse_accuracy.R 0.1x
+```
+
+If you don't have time to run the 0.1x sample, that's perfectly fine. You can find the plot of the imputation accuracy here: 
+
+![](dog_1x_imputation_accuracy.png)
+
+Questions:  
+What differences do you notice between the 1x and 0.1x imputed samples? Why? 
+
+Let's look at the distribution of INFO scores for 1x and 0.1x:
+```
+Rscript scripts/info_scores.R 0.1
+```
+
+
+
+
+## Exercise 5: Impact of ancestral representation in the reference panel
+
+Since imputation relies on the haplotypes present in the reference panel, we would expect that the representation of ancestries among the samples in the panel will impact the imputation accuracy. Ideally, we will have the ancestry of our target sample also present among the reference panel haplotypes. Let's see what happens to the imputation accuracy when we remove non-dog canids from the panel.  
 
 
 
@@ -371,10 +402,9 @@ less output/GLIMPSE_concordance/${SAMPLE}_INFO_0.9.error.spl.txt.gz
 RR is REF/REF, RA is REF/ALT and AA is ALT/ALT.
 
 
-
-Q: Why are the sections with indels all 0?
+Question:  
+Why are the sections with indels all 0?
 
 Let's plot the concordance estimates to get an idea of the imputation accuracy. We will plot ___ from the __ file, against different MAF bins. 
 
-## Exercise 4: Impact of ancestral representation in the reference panel
 
