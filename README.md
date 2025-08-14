@@ -427,7 +427,7 @@ Let's look at the distribution of INFO scores for 1x and 0.1x:
 ![](INFO_distribution.png)
 
 Question:
-What difference do you notice in the INFO scores between the two coverages? What does this relate to the accuracy results?
+What difference do you notice in the INFO scores between the two coverages? How does this relate to the accuracy results?
 
 Another thing to keep in mind, is how many sites you're retaining after post-imputation filtering.
 
@@ -447,7 +447,7 @@ bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.0.1x.phased_annotated_IN
 ```
 Question:
 1) How does the number of retained sites vary between different coverages and INFO score cutoffs?
-2) Would you impute a really low coverage sample (say 0.01x) and apply a really strict INFO score filter?
+2) Would you impute a really low coverage sample (say 0.01x) and apply an INFO score filter?
 
 ## Exercise 5: Impact of ancestral representation in the reference panel
 
