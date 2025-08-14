@@ -20,7 +20,7 @@ srun --pty -n 1 -c 1 bash -i
 
 ### Create directory
 ```
-directoryImputation="/home/_username_/Imputation/"
+directoryImputation="/home/${USER}/Imputation/"
 mkdir -p $directoryImputation
 # go into the directory
 cd $directoryImputation
