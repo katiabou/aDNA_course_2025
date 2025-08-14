@@ -397,7 +397,7 @@ Rscript ${DATA_PATH}/scripts/glimpse_accuracy.R ${SAMPLE}
 
 In order to download the figure from the server to your local machine, run this command (remember to change it to your own username!!!)
 ```
-scp qcj125@mjolnirgate.unicph.domain:/projects/course_1/people/qcj125/TRF.05.05.chr22.1x_imputation_accuracy.png .
+scp qcj125@mjolnirgate.unicph.domain:/home/qcj125/Imputation/TRF.05.05.chr22.1x_imputation_accuracy.png .
 ```
 
 Questions: 
