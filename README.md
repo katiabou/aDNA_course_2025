@@ -3,11 +3,20 @@ Genotype imputation exercise for the 2025 aDNA course "Decoding the past: An int
 
 ### Introduction
 
-This tutorial will show you how to run genotype imputation using GLIMPSE ([Rubinacci et al.,2021](https://doi.org/10.1038/s41588-020-00756-0)), an imputation and phasing method tailored for low coverage sequencing data. We will test how imputation works in an ancient dog from Siberia, dated to 2,000 years before present (ybp). This sample is relativaly high coverage for ancient standards (11.8x), so in order to test the imputation accuracy, we will downsample it to lower coverages (0.1x and 1x) and see how the imputed genotypes compare to the "true" high coverage ones.
+This tutorial will show you how to run genotype imputation using GLIMPSE ([Rubinacci et al.,2021](https://doi.org/10.1038/s41588-020-00756-0)), an imputation and phasing method tailored for low coverage sequencing data. We will test imputation accuracy in an ancient dog from Siberia, dated to 2,000 years before present (ybp). This sample is relatively high coverage for ancient standards (11.8x), so in order to test the imputation accuracy, we will downsample it to lower coverages (0.1x and 1x) and see how the imputed genotypes compare to the "true" high coverage ones.
 
 We will run GLIMPSE from sequencing reads data (BAM files) to obtain imputed and phased genotypes.
 
 For this tutorial, we will focus only on chromosome 22.
+
+### Activate interactive session
+```
+#first run:
+salloc --account=teaching --reservation=aDNA_PHD_course --nodes=1 -D `pwd` --mem-per-cpu 15000 --ntasks-per-node=1 -t 1400
+
+# once the node is allocated run this:
+srun --pty -n 1 -c 1 bash -i
+```
 
 ### Set paths to data folder
 ```
@@ -40,9 +49,9 @@ bcftools view ${REF} | less -S
 ```
 
 #### Questions: 
-1) How many sites are in the panel for chr22? (813342)
+1) How many sites are in the panel for chr22?  
 2) Are the sites phased?
-3) How many samples are in the reference panel? (1519)
+3) How many samples are in the reference panel?  
 4) What species are present?
 
 #### Hints (use these commands to answer the above questions): 
@@ -127,7 +136,10 @@ bgzip -c > ${TSV}
 tabix -s1 -b2 -e2 ${TSV}
 ```
 
-Take a look at the tsv file:    
+Take a look at the vcf and tsv files from above:    
+```
+bcftools view output/reference_panel/chr22_ref_panel_sites.vcf.gz | less -S
+```
 ```
 less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
 ```
@@ -138,11 +150,10 @@ less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
 
 #### Let's start with the 1x ancient Siberian dog
 ```
-SAMPLE=TRF.05.05.chr22.0.1x
+SAMPLE=TRF.05.05.chr22.1x
 ```
 
-The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites.
-The output of this step is a VCF file format containing genotype likelihoods at each site (based on those present in the reference panel).
+The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites. Then bcftools call uses the genotype likelihoods to infer genotypes.
 
 ```
 BAM=${DATA_PATH}/bams_down/${SAMPLE}.bam
@@ -157,11 +168,26 @@ bcftools mpileup \
 -T ${VCF} \
 -r chr22 ${BAM} -Ou | \
 bcftools call \
--Aim -C alleles -T ${TSV} \
+-Aim \
+-C alleles \
+-T ${TSV} \
 -Oz -o ${GL} \
 --threads 6
 
 bcftools index -f ${GL}
+
+
+# bcftools mpileup options:
+# -f ${REFGEN} Reference genome in a fasta file
+# -I Ignore indels
+# -E Recalculate BAQ on the fly, ignore existing BQ tags
+# -a 'FORMAT/DP' Annotate per-sample read depth in the FORMAT field (DP).
+# -T ${VCF} Sites file
+#
+# bcftools call options:
+# -Aim A: Keep all alternative sites, i: output also sites missed by mpileup but present in -T, m: alternative model for multiallelic and rare-variant calling 
+# -C alleles Call genotypes given the alleles in the TSV file below
+# -T TSV file with the allowed alleles list 
 ```
 
 ### Step 3: Splitting each chromosome into chunks  
@@ -176,6 +202,9 @@ GLIMPSE_chunk_static \
 --region chr22 \
 --window-size 2000000 --buffer-size 200000 \
 --output ${CHUNK}
+
+# --window-size Defines the size of the main genomic segment (in base pairs) that GLIMPSE will impute at once
+# --buffer-size Adds extra flanking sequence around each window to account for edge effects
 ```
 
 ### Step 4: Impute! For each of the chunks estimated from above, impute using the genotype likelihoods 
@@ -264,7 +293,8 @@ bcftools view output/GLIMPSE_ligated/${SAMPLE}.phased_annotated.vcf.gz | less -S
 
 Take a moment to understand the different fields. What does the INFO/INFO field represent?
 
-Q: How many imputed sites are there? How does it compare the number of sites in the reference panel?
+Question:  
+How many imputed sites are there? How does it compare the number of sites in the reference panel?
 
 #### Hint (use this command to answer the above questions): 
 ```
@@ -358,22 +388,22 @@ Rscript scripts/glimpse_accuracy.R 1x
 
 Questions: 
 1) What do you notice from this plot about the different INFO score cutoffs?
-2) What do you notice about the different MAF bins? Why?
+2) What do you notice about the different MAF bins? Would you apply a MAF cutodff? Why?
 
 
 
 ## Exercise 4: Checking imputation accuracy at 0.1x
 
-If you have time, re-run the imputation steps 2-7, this time using the 0.1x downsampled dog (Change the SAMPLE name from TRF.05.05.chr22.1x to TRF.05.05.chr22.0.1x and then re-run the same code as is). 
+If you have time, re-run the imputation steps 2-7, this time using the 0.1x downsampled dog (Change the SAMPLE name from TRF.05.05.chr22.1x to TRF.05.05.chr22.0.1x in Step 2, and then re-run the following steps as is). 
 
 Then plot the results:
 ```
 Rscript scripts/glimpse_accuracy.R 0.1x
 ```
 
-If you don't have time to run the 0.1x sample, that's perfectly fine. You can find the plot of the imputation accuracy here: 
+If you don't have time to run the 0.1x sample, you can find the plot showing the imputation accuracy here: 
 
-![](dog_1x_imputation_accuracy.png)
+![](dog_imputation_accuracy_0.1x.png)
 
 Questions:  
 What differences do you notice between the 1x and 0.1x imputed samples? Why? 
@@ -383,28 +413,25 @@ Let's look at the distribution of INFO scores for 1x and 0.1x:
 ![](INFO_distribution.png)
 
 Question:
-What difference do you notice in the INFO scores between the two coverages? 
+What difference do you notice in the INFO scores between the two coverages? What does this relate to the accuracy results?
 
+Another thing to keep in mind, is how many sites you're retaining after post-imputation filtering.
 
 ## Exercise 5: Impact of ancestral representation in the reference panel
 
-Since imputation relies on the haplotypes present in the reference panel, we would expect that the representation of ancestries among the samples in the panel will impact the imputation accuracy. Ideally, we will have the ancestry of our target sample also present among the reference panel haplotypes. Let's see what happens to the imputation accuracy when we remove non-dog canids from the panel.  
+Since imputation relies on the haplotypes present in the reference panel, we would expect that the representation of ancestries among the samples in the panel will impact the imputation accuracy. Ideally, we will have the ancestry of our target sample also present among the reference panel haplotypes. 
+
+Let's impute a different ancient dog sample, from North America dated to ~4,000 ybp. This is a pre-contact American dog, a lineage that existed in the Americas which rapidly disappeared following the arrival of European settlers, leaving minimal trace in present-day dogs.   
+
+All the imputation steps have already been run, and we're ready to plot the accuracy:
 
 
 
 
 
+Question: We can see that the imputation accuracy of American pre-contact dogs is lower than the European dogs. Any idea why?
 
 
-```
-less output/GLIMPSE_concordance/${SAMPLE}_INFO_0.9.error.spl.txt.gz
-```
-RR is REF/REF, RA is REF/ALT and AA is ALT/ALT.
 
-
-Question:  
-Why are the sections with indels all 0?
-
-Let's plot the concordance estimates to get an idea of the imputation accuracy. We will plot ___ from the __ file, against different MAF bins. 
 
 
