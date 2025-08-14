@@ -452,10 +452,9 @@ Let's impute a different ancient dog sample, from North America dated to ~4,000 
 
 All the imputation steps have already been run, and we're ready to plot the accuracy:
 
-![](PortauChoix_imputation_accuracy_1x.png)
+![](PortauChoix_chr22_1x_imputation_accuracy)
 
-![](PortauChoix_imputation_accuracy_0.1x.png)
-
+![](PortauChoix_chr22_0.1x_imputation_accuracy)
 
 Question: We can see that the imputation accuracy of American pre-contact dogs is lower than the European dogs. Any idea why?
 
