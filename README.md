@@ -395,6 +395,11 @@ This file has 5 columns, but we're interested in the 1st (MAF bin number) and la
 Rscript ${DATA_PATH}/scripts/glimpse_accuracy.R ${SAMPLE}
 ```
 
+In order to download the figure from the server to your local machine, run this command (remember to change it to your own username!!!)
+```
+scp qcj125@mjolnirgate.unicph.domain:/projects/course_1/people/qcj125/TRF.05.05.chr22.1x_imputation_accuracy.png .
+```
+
 Questions: 
 1) What do you notice from this plot about the different INFO score cutoffs?
 2) What do you notice about the different MAF bins? Would you apply a MAF cutodff? Why?
@@ -452,12 +457,16 @@ Let's impute a different ancient dog sample, from North America dated to ~4,000 
 
 All the imputation steps have already been run, and we're ready to plot the accuracy:
 
-![](PortauChoix_chr22_1x_imputation_accuracy)
+Plot for 1x coverage:
+![](PortauChoix_chr22_1x_imputation_accuracy.png)
 
-![](PortauChoix_chr22_0.1x_imputation_accuracy)
+Plot for 0.1x coverage:
+![](PortauChoix_chr22_0.1x_imputation_accuracy.png)
 
-Question: We can see that the imputation accuracy of American pre-contact dogs is lower than the European dogs. Any idea why?
 
+Question: 
+1) How does the accuracy of the ancient North American dog compare to that of the ancient Siberian dog? Why do you think that is?
+2) Would you impute low coverage ancient North American pre-contact dogs? 
 
 
 
