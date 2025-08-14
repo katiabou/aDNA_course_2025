@@ -18,6 +18,15 @@ salloc --account=teaching --reservation=aDNA_PHD_course --nodes=1 -D `pwd` --mem
 srun --pty -n 1 -c 1 bash -i
 ```
 
+### Create directory
+```
+directoryImputation="/home/_username_/Imputation/"
+mkdir -p $directoryImputation
+# go into the directory
+cd $directoryImputation
+```
+
+
 ### Set paths to data folder
 ```
 COURSE_PATH=/projects/course_1
@@ -150,7 +159,7 @@ less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
 
 #### Let's start with the 1x ancient Siberian dog
 ```
-SAMPLE=TRF.05.05.chr22.1x
+SAMPLE=PortauChoix_chr22_1x
 ```
 
 The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites. Then bcftools call uses the genotype likelihoods to infer genotypes.
@@ -347,7 +356,7 @@ bcftools query -l ${ANNOTATED} > ${SAMPLE_NAME}
 Make file with required inputs:
 ```
 REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
-TRUE=${DATA_PATH}/validation_bams/TRF.05.05_chr22_validation_filt_qual_dp_ab.bcf
+TRUE=${DATA_PATH}/validation_bams/PortauChoix_chr22_validation_filt_qual_dp_ab.bcf
 
 for i in 0 0.8 0.9 0.95
 do
@@ -416,6 +425,24 @@ Question:
 What difference do you notice in the INFO scores between the two coverages? What does this relate to the accuracy results?
 
 Another thing to keep in mind, is how many sites you're retaining after post-imputation filtering.
+
+Let's see how many are left after filtering for different INFO scores for the two tested coverages:
+```
+# For 1x coverage:
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.1x.phased_annotated_INFO_0.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.1x.phased_annotated_INFO_0.8.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.1x.phased_annotated_INFO_0.9.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.1x.phased_annotated_INFO_0.95.bcf | wc -l
+
+# For 0.1x coverage
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.0.1x.phased_annotated_INFO_0.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.0.1x.phased_annotated_INFO_0.8.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.0.1x.phased_annotated_INFO_0.9.bcf | wc -l
+bcftools view -H output/GLIMPSE_ligated/TRF.05.05.chr22.0.1x.phased_annotated_INFO_0.95.bcf | wc -l
+```
+Question:
+1) How does the number of retained sites vary between different coverages and INFO score cutoffs?
+2) Would you impute a really low coverage sample (say 0.01x) and apply a really strict INFO score filter?
 
 ## Exercise 5: Impact of ancestral representation in the reference panel
 
