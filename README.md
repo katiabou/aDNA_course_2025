@@ -159,7 +159,7 @@ less -S output/reference_panel/chr22_ref_panel_sites.tsv.gz
 
 #### Let's start with the 1x ancient Siberian dog
 ```
-SAMPLE=PortauChoix_chr22_1x
+SAMPLE=TRF.05.05.chr22.1x
 ```
 
 The bcftools mpileup command generates a VCF containing genotype likelihoods for a bam file at specified sites. Then bcftools call uses the genotype likelihoods to infer genotypes.
@@ -356,7 +356,7 @@ bcftools query -l ${ANNOTATED} > ${SAMPLE_NAME}
 Make file with required inputs:
 ```
 REF=${DATA_PATH}/reference_panel_vcf/ref-panel_chr22.vcf.gz
-TRUE=${DATA_PATH}/validation_bams/PortauChoix_chr22_validation_filt_qual_dp_ab.bcf
+TRUE=${DATA_PATH}/validation_bams/TRF.05.05_chr22_validation_filt_qual_dp_ab.bcf
 
 for i in 0 0.8 0.9 0.95
 do
@@ -392,7 +392,7 @@ This file has 5 columns, but we're interested in the 1st (MAF bin number) and la
 #### Plot imputation accuracy at 1x coverage across different INFO cutoffs
 
 ```
-Rscript scripts/glimpse_accuracy.R 1x
+Rscript ${DATA_PATH}/scripts/glimpse_accuracy.R ${SAMPLE}
 ```
 
 Questions: 
@@ -407,12 +407,12 @@ If you have time, re-run the imputation steps 2-7, this time using the 0.1x down
 
 Then plot the results:
 ```
-Rscript scripts/glimpse_accuracy.R 0.1x
+Rscript ${DATA_PATH}/scripts/glimpse_accuracy.R ${SAMPLE}
 ```
 
 If you don't have time to run the 0.1x sample, you can find the plot showing the imputation accuracy here: 
 
-![](dog_imputation_accuracy_0.1x.png)
+![](TRF.05.05.chr22.0.1x_imputation_accuracy.png)
 
 Questions:  
 What differences do you notice between the 1x and 0.1x imputed samples? Why? 
@@ -452,8 +452,9 @@ Let's impute a different ancient dog sample, from North America dated to ~4,000 
 
 All the imputation steps have already been run, and we're ready to plot the accuracy:
 
+![](PortauChoix_imputation_accuracy_1x.png)
 
-
+![](PortauChoix_imputation_accuracy_0.1x.png)
 
 
 Question: We can see that the imputation accuracy of American pre-contact dogs is lower than the European dogs. Any idea why?
